@@ -9,6 +9,7 @@ import 'draw_screen.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  File? _image;
+  XFile? _image;
   final ApiService _apiService = ApiService();
   bool _isLoading = false; // Loading state
 
@@ -27,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _image = File(image.path);
+        _image = image;
       });
       print('Selected image path: ${_image!.path}');
       _uploadImage(context);
@@ -36,13 +37,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _takePicture() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() {
-        _image = File(image.path);
-      });
-      print('Captured image path: ${_image!.path}');
-      _uploadImage(context);
+    final XFile? xfile = await picker.pickImage(source: ImageSource.camera);
+
+    if (xfile != null) {
+      final String dir = (await getTemporaryDirectory()).path;
+      final String targetPath = '$dir/temp_fixed.jpg';
+
+      final XFile? compressedFile = await FlutterImageCompress.compressAndGetFile(
+        xfile.path, // Use the XFile object's path directly
+        targetPath,
+        quality: 100,
+        rotate: 0, // Automatically corrects orientation
+      );
+
+      if (compressedFile != null) {
+        setState(() {
+          _image = compressedFile; // ✅ Assigning XFile? to File? - Still incorrect
+        });
+        print('Fixed and saved image path: ${_image!.path}');
+        _uploadImage(context);
+      } else {
+        print('Failed to fix orientation');
+        _showErrorDialog(context);
+      }
     }
   }
 
@@ -53,54 +70,66 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       print('Uploading image...');
       try {
-        // Create a copy of the image with a timestamp in the filename
-        final File timestampedImage = await _createTimestampedImageCopy(_image!);
-        String? resultUrl = await _apiService.uploadImage(timestampedImage);
-        if (resultUrl != null) {
-          print('API Response: $resultUrl');
-          try {
-            var decoded;
-            if (resultUrl.contains('{')) {
-              decoded = json.decode(resultUrl);
-              print('Decoded API Response: $decoded');
-            } else {
-              print('ResultUrl is not JSON, treating as direct URL.');
-              _handleFallbackResponse(resultUrl, context);
-              return;
-            }
-            if (decoded is Map<String, dynamic>) {
-              final imageName = decoded['image_name'];
-              if (imageName != null) {
-                Provider.of<ProcessedImageProvider>(context, listen: false)
-                    .setProcessedImageUrls(
-                  maskUrl: decoded['mask_url'] ?? '',
-                  textureUrl: decoded['texture_url'] ?? '',
-                  originalUrl: decoded['orig_image_url'] ?? '',
-                );
-                print('Image uploaded successfully. Image Name: $imageName, URLs: ${decoded['mask_url']}');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PoseAnnotationChoiceScreen(imageName: imageName),
-                  ),
-                );
+        File? fileToSend;
+        if (_image is XFile) {
+          fileToSend = File((_image as XFile).path); // Convert XFile to File
+        } else if (_image is File) {
+          fileToSend = _image as File;
+        }
+
+        if (fileToSend != null) {
+          // Create a copy of the image with a timestamp in the filename
+          final File timestampedImage = await _createTimestampedImageCopy(fileToSend);
+          String? resultUrl = await _apiService.uploadImage(timestampedImage);
+          if (resultUrl != null) {
+            print('API Response: $resultUrl');
+            try {
+              var decoded;
+              if (resultUrl.contains('{')) {
+                decoded = json.decode(resultUrl);
+                print('Decoded API Response: $decoded');
               } else {
-                print('Error: "image_name" key not found in JSON response.');
+                print('ResultUrl is not JSON, treating as direct URL.');
+                _handleFallbackResponse(resultUrl, context);
+                return;
+              }
+              if (decoded is Map<String, dynamic>) {
+                final imageName = decoded['image_name'];
+                if (imageName != null) {
+                  Provider.of<ProcessedImageProvider>(context, listen: false)
+                      .setProcessedImageUrls(
+                    maskUrl: decoded['mask_url'] ?? '',
+                    textureUrl: decoded['texture_url'] ?? '',
+                    originalUrl: decoded['orig_image_url'] ?? '',
+                  );
+                  print('Image uploaded successfully. Image Name: $imageName, URLs: ${decoded['mask_url']}');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PoseAnnotationChoiceScreen(imageName: imageName),
+                    ),
+                  );
+                } else {
+                  print('Error: "image_name" key not found in JSON response.');
+                  _showErrorDialog(context);
+                }
+              } else {
+                print('Error: Unexpected API response format. Expected a JSON object.');
                 _showErrorDialog(context);
               }
-            } else {
-              print('Error: Unexpected API response format. Expected a JSON object.');
+            } on FormatException catch (e) {
+              print('FormatException in _uploadImage: $e');
+              _handleFallbackResponse(resultUrl, context);
+            } catch (e) {
+              print('Unexpected error decoding response: $e');
               _showErrorDialog(context);
             }
-          } on FormatException catch (e) {
-            print('FormatException in _uploadImage: $e');
-            _handleFallbackResponse(resultUrl, context);
-          } catch (e) {
-            print('Unexpected error decoding response: $e');
+          } else {
+            print('Image upload failed: Response is null.');
             _showErrorDialog(context);
           }
         } else {
-          print('Image upload failed: Response is null.');
+          print('Error: Could not convert _image to File for upload.');
           _showErrorDialog(context);
         }
       } catch (e) {
