@@ -85,18 +85,18 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
         Offset(426, 715),  // Hip (same as Root)
         Offset(436, 438),  // Torso
         Offset(430, 272),  // Neck
-        Offset(590, 343),  // Left Shoulder
-        Offset(685, 507),  // Left Elbow
-        Offset(708, 655),  // Left Hand
         Offset(291, 355),  // Right Shoulder
         Offset(178, 496),  // Right Elbow
         Offset(56, 640),   // Right Hand
-        Offset(496, 726),  // Left Hip
-        Offset(513, 865),  // Left Knee
-        Offset(545, 1132), // Left Foot
+        Offset(590, 343),  // Left Shoulder
+        Offset(685, 507),  // Left Elbow
+        Offset(708, 655),  // Left Hand
         Offset(355, 701),  // Right Hip
         Offset(348, 879),  // Right Knee
         Offset(313, 1107), // Right Foot
+        Offset(496, 726),  // Left Hip
+        Offset(513, 865),  // Left Knee
+        Offset(545, 1132), // Left Foot
       ];
     } else {
       // Use the default keypoints for uploaded images
