@@ -39,6 +39,7 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
   
   // Track if this is a drawing from the drawing screen
   bool _isDrawingSource = false;
+  bool _isTakePictureSource = false;
 
   @override
   void initState() {
@@ -52,29 +53,53 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
   void _initializeKeypoints() {
     // Check if this is a drawing (based on the image name or metadata)
     _isDrawingSource = _checkIfDrawingSource();
-    
+
+    // Check if this came from taking a picture (based on the image name or metadata)
+    _isTakePictureSource = _checkIfTakePictureSource();
+
+    print('Current Image Name: $_currentImageName');
+
     if (_isDrawingSource) {
-      // Use the drawing-specific keypoints with the correct width/height ratio
+      // Use the drawing-specific keypoints with the correct name
       _keypoints = [
         Offset(141, 192), // Root
         Offset(141, 192), // Hip (same as Root)
         Offset(142, 136), // Torso
         Offset(149, 104), // Neck
-        Offset(100, 131), // Left Shoulder (switched with right)
-        Offset(64, 163),  // Left Elbow (switched with right)
-        Offset(19, 191),  // Left Hand (switched with right)
-        Offset(195, 130), // Right Shoulder (switched with left)
-        Offset(237, 167), // Right Elbow (switched with left)
-        Offset(263, 204), // Right Hand (switched with left)
-        Offset(105, 199), // Left Hip (switched with right)
-        Offset(94, 248),  // Left Knee (switched with right)
-        Offset(67, 289),  // Left Foot (switched with right)
-        Offset(180, 198), // Right Hip (switched with left)
-        Offset(187, 252), // Right Knee (switched with left)
-        Offset(202, 301), // Right Foot (switched with left)
+        Offset(100, 131), // Left Shoulder
+        Offset(64, 163),  // Left Elbow
+        Offset(19, 191),  // Left Hand
+        Offset(195, 130), // Right Shoulder
+        Offset(237, 167), // Right Elbow
+        Offset(263, 204), // Right Hand
+        Offset(105, 199), // Left Hip
+        Offset(94, 248),  // Left Knee
+        Offset(67, 289),  // Left Foot
+        Offset(180, 198), // Right Hip
+        Offset(187, 252), // Right Knee
+        Offset(202, 301), // Right Foot
+      ];
+    } else if (_isTakePictureSource) {
+      _keypoints = [
+        Offset(426, 715),  // Root
+        Offset(426, 715),  // Hip (same as Root)
+        Offset(436, 438),  // Torso
+        Offset(430, 272),  // Neck
+        Offset(590, 343),  // Left Shoulder
+        Offset(685, 507),  // Left Elbow
+        Offset(708, 655),  // Left Hand
+        Offset(291, 355),  // Right Shoulder
+        Offset(178, 496),  // Right Elbow
+        Offset(56, 640),   // Right Hand
+        Offset(496, 726),  // Left Hip
+        Offset(513, 865),  // Left Knee
+        Offset(545, 1132), // Left Foot
+        Offset(355, 701),  // Right Hip
+        Offset(348, 879),  // Right Knee
+        Offset(313, 1107), // Right Foot
       ];
     } else {
-      // Use the default keypoints for uploaded/camera images
+      // Use the default keypoints for uploaded images
       _keypoints = [
         Offset(164, 274), // Root
         Offset(164, 274), // Hip (same as Root)
@@ -124,6 +149,16 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
       }
     }
     
+    return false;
+  }
+
+  // Check if the current image is taken from camera feature
+  bool _checkIfTakePictureSource() {
+    if (_currentImageName != null) {
+      if (_currentImageName!.toLowerCase().contains('pictaken_')) {
+        return true;
+      }
+    }
     return false;
   }
 
