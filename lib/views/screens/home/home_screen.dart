@@ -21,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   XFile? _image;
   final ApiService _apiService = ApiService();
-  bool _isLoading = false; // Loading state
+  bool _isLoading = false;
 
   Future<void> _pickFromGallery() async {
     final ImagePicker picker = ImagePicker();
@@ -31,31 +31,28 @@ class _HomeScreenState extends State<HomeScreen> {
         _image = image;
       });
       print('Selected image path: ${_image!.path}');
-      _uploadImage(context);
+      _uploadImage(context, prefix: 'picked');
     }
   }
 
   Future<void> _takePicture() async {
     final ImagePicker picker = ImagePicker();
     final XFile? xfile = await picker.pickImage(source: ImageSource.camera);
-
     if (xfile != null) {
       final String dir = (await getTemporaryDirectory()).path;
       final String targetPath = '$dir/temp_fixed.jpg';
-
       final XFile? compressedFile = await FlutterImageCompress.compressAndGetFile(
-        xfile.path, // Use the XFile object's path directly
+        xfile.path,
         targetPath,
         quality: 100,
-        rotate: 0, // Automatically corrects orientation
+        rotate: 0,
       );
-
       if (compressedFile != null) {
         setState(() {
-          _image = compressedFile; // ✅ Assigning XFile? to File? - Still incorrect
+          _image = compressedFile;
         });
         print('Fixed and saved image path: ${_image!.path}');
-        _uploadImage(context);
+        _uploadImage(context, prefix: 'pictaken_');
       } else {
         print('Failed to fix orientation');
         _showErrorDialog(context);
@@ -63,24 +60,24 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _uploadImage(BuildContext context) async {
+  Future<void> _uploadImage(BuildContext context, {String prefix = 'image_'}) async {
     if (_image != null) {
       setState(() {
-        _isLoading = true; // Start loading
+        _isLoading = true;
       });
       print('Uploading image...');
       try {
         File? fileToSend;
         if (_image is XFile) {
-          fileToSend = File((_image as XFile).path); // Convert XFile to File
+          fileToSend = File((_image as XFile).path);
         } else if (_image is File) {
           fileToSend = _image as File;
         }
 
         if (fileToSend != null) {
-          // Create a copy of the image with a timestamp in the filename
-          final File timestampedImage = await _createTimestampedImageCopy(fileToSend);
+          final File timestampedImage = await _createTimestampedImageCopy(fileToSend, prefix: prefix);
           String? resultUrl = await _apiService.uploadImage(timestampedImage);
+
           if (resultUrl != null) {
             print('API Response: $resultUrl');
             try {
@@ -93,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _handleFallbackResponse(resultUrl, context);
                 return;
               }
+
               if (decoded is Map<String, dynamic>) {
                 final imageName = decoded['image_name'];
                 if (imageName != null) {
@@ -137,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _showErrorDialog(context);
       } finally {
         setState(() {
-          _isLoading = false; // Stop loading
+          _isLoading = false;
         });
       }
     } else {
@@ -146,17 +144,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Create a copy of the image with a timestamp in the filename to ensure uniqueness
-  Future<File> _createTimestampedImageCopy(File originalImage) async {
+  // Updated to accept a prefix
+  Future<File> _createTimestampedImageCopy(File originalImage, {String prefix = 'image_'}) async {
     final directory = await getTemporaryDirectory();
     final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final String newPath = '${directory.path}/image_$timestamp${_getFileExtension(originalImage.path)}';
-    
-    // Create a copy of the image with the timestamped filename
+    final String newPath = '${directory.path}/$prefix$timestamp${_getFileExtension(originalImage.path)}';
     return await originalImage.copy(newPath);
   }
 
-  // Helper method to get file extension
   String _getFileExtension(String path) {
     return path.substring(path.lastIndexOf('.'));
   }
@@ -195,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack( // Use Stack to overlay the loading indicator
+      body: Stack(
         children: [
           Container(
             width: double.infinity,
@@ -265,9 +260,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          if (_isLoading) // Show loading indicator if loading
+          if (_isLoading)
             Container(
-              color: Colors.black26, // Optional: semi-transparent background
+              color: Colors.black26,
               child: const Center(
                 child: CircularProgressIndicator(
                   color: Colors.teal,
