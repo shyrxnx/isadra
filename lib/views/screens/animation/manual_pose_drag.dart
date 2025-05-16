@@ -796,7 +796,7 @@ class _KeypointPainter extends CustomPainter {
         Offset(x, y),
         isDragging ? 10.0 : 6.0, // Larger if being dragged
         Paint()
-          ..color = isDragging ? Colors.red : Colors.lightBlue
+          ..color = isDragging ? Colors.green : Colors.lightBlue
           ..style = PaintingStyle.fill,
       );
 
