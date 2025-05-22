@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../core/data/tutorial_data.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/mixins/sound_mixin.dart';
 import '../../screens/tutorial/tutorial_main_screen.dart';
+import '../../screens/tutorial/tutorial_section_screen.dart';
 
 class TutorialSettings extends StatelessWidget with SoundMixin {
   const TutorialSettings({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Retrieve the tutorial sections
+    final tutorialSections = TutorialData.getTutorialSections();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(context.tr('tutorial_help')),
@@ -34,7 +39,7 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Welcome text
               Text(
                 context.tr('tutorial_welcome'),
@@ -55,7 +60,7 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-              
+
               // Start tutorial button
               ElevatedButton.icon(
                 onPressed: () {
@@ -82,7 +87,7 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Quick help options
               Card(
                 shape: RoundedRectangleBorder(
@@ -107,24 +112,60 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
                         Icons.home,
                         context.tr('home_help'),
                         Colors.blue,
+                            () {
+                          // Navigate to the home help section
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TutorialSectionScreen(section: tutorialSections[0]),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickHelpItem(
                         context,
                         Icons.movie,
                         context.tr('animation_help'),
                         Colors.purple,
+                            () {
+                          // Navigate to the animation help section
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TutorialSectionScreen(section: tutorialSections[1]),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickHelpItem(
                         context,
                         Icons.menu_book,
                         context.tr('storybook_help'),
                         Colors.orange,
+                            () {
+                          // Navigate to the storybook help section
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TutorialSectionScreen(section: tutorialSections[2]),
+                            ),
+                          );
+                        },
                       ),
                       _buildQuickHelpItem(
                         context,
                         Icons.settings,
                         context.tr('settings_help'),
                         Colors.green,
+                            () {
+                          // Navigate to the settings help section
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TutorialSectionScreen(section: tutorialSections[3]),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -136,25 +177,28 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
       ),
     );
   }
-  
-  Widget _buildQuickHelpItem(BuildContext context, IconData icon, String text, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: color.withOpacity(0.2),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14),
+
+  Widget _buildQuickHelpItem(BuildContext context, IconData icon, String text, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap, // Trigger the onTap action
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: color.withOpacity(0.2),
+              child: Icon(icon, color: color),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
