@@ -222,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       backgroundColor: Colors.orange,
                     ),
                     child: const Text(
-                      'Draw',
+                      '🎨 Draw',
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       backgroundColor: Colors.purple,
                     ),
                     child: const Text(
-                      'Pick from photos',
+                      '🖼️ Pick from photos',
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
@@ -252,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       backgroundColor: Colors.teal,
                     ),
                     child: const Text(
-                      'Take a picture',
+                      '📷 Take a picture',
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
