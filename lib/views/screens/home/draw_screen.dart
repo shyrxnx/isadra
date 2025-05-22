@@ -29,8 +29,7 @@ class _DrawScreenState extends State<DrawScreen> {
   double strokeWidth = 4.0;
   final ApiService _apiService = ApiService(); // For API calls
   bool _isLoading = false; // Loading state
-  DrawingTool _currentTool = DrawingTool.pencil;
-  Offset? _fillStartPoint;
+  DrawingTool _currentTool = DrawingTool.brush; // Default to brush
 
   // Function to pick color
   void _pickColor() {
@@ -58,21 +57,20 @@ class _DrawScreenState extends State<DrawScreen> {
 
   // Start a new stroke
   Future<void> _startNewStroke(Offset localPosition) async {
-    if (_currentTool == DrawingTool.pencil || _currentTool == DrawingTool.brush) {
+    if (_currentTool == DrawingTool.brush) {
       setState(() {
         strokes.add([localPosition]);
         strokeColors.add(selectedColor);
-        strokeWidths.add(_currentTool == DrawingTool.pencil ? 3.0 : 8.0);
+        strokeWidths.add(8.0);
       });
     } else if (_currentTool == DrawingTool.fill) {
-      _fillStartPoint = localPosition;
       await _floodFill(localPosition);
     }
   }
 
   // Update the current stroke
   void _updateStroke(Offset localPosition) {
-    if (_currentTool == DrawingTool.pencil || _currentTool == DrawingTool.brush) {
+    if (_currentTool == DrawingTool.brush) {
       setState(() {
         strokes.last.add(localPosition);
       });
@@ -99,7 +97,7 @@ class _DrawScreenState extends State<DrawScreen> {
     });
   }
 
-// Flood fill algorithm
+  // Flood fill algorithm
   Future<void> _floodFill(Offset startPoint) async {
     if (_boundaryKey.currentContext == null) return;
 
@@ -182,7 +180,7 @@ class _DrawScreenState extends State<DrawScreen> {
     return point.dx >= 0 && point.dx < width && point.dy >= 0 && point.dy < height;
   }
 
-// Export drawing to an image file with a unique name and resize it
+  // Export drawing to an image file with a unique name and resize it
   Future<File> _exportDrawingToImage() async {
     RenderRepaintBoundary boundary = _boundaryKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -350,10 +348,9 @@ class _DrawScreenState extends State<DrawScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.color_lens),
+                      icon: Icon(Icons.color_lens, color: selectedColor),
                       onPressed: _pickColor,
                     ),
-                    _buildToolButton(DrawingTool.pencil, Icons.create), // Pencil
                     _buildToolButton(DrawingTool.brush, Icons.brush), // Brush
                     _buildToolButton(DrawingTool.fill, Icons.format_color_fill), // Fill Bucket
                   ],
@@ -382,9 +379,7 @@ class _DrawScreenState extends State<DrawScreen> {
         setState(() {
           _currentTool = tool;
           // Optionally set stroke width based on the tool
-          if (tool == DrawingTool.pencil) {
-            strokeWidth = 3.0;
-          } else if (tool == DrawingTool.brush) {
+          if (tool == DrawingTool.brush) {
             strokeWidth = 8.0;
           }
         });
@@ -417,7 +412,7 @@ class DrawingPainter extends CustomPainter {
           }
         }
       } else {
-        // For lines (pencil/brush)
+        // For lines (brush)
         for (int j = 0; j < strokes[i].length - 1; j++) {
           if (strokes[i][j] != null && strokes[i][j + 1] != null) {
             canvas.drawLine(strokes[i][j]!, strokes[i][j + 1]!, paint);
@@ -432,7 +427,6 @@ class DrawingPainter extends CustomPainter {
 }
 
 enum DrawingTool {
-  pencil,
   brush,
   fill,
 }
