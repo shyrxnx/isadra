@@ -29,10 +29,10 @@ class _AnimationPickerState extends State<AnimationPicker> {
   bool _isLoadingGif = false;
 
   final Map<String, String> _animations = {
-    'Angry': 'QUIRKY', 'Blow Kiss': 'NORMAL', 'Brush': 'NORMAL', 'Celebrate': 'QUIRKY',
+    'Angry': 'QUIRKY', 'Blow Kiss': 'NORMAL', 'Brush': 'NORMAL', 'Clap': 'QUIRKY',
     'Chicken Dance': 'QUIRKY', 'Dab': 'QUIRKY', 'Dance L': 'QUIRKY', 'Falldown': 'QUIRKY',
     'Fancy Dance': 'QUIRKY', 'Fist Pump': 'QUIRKY', 'Flex Muscle': 'QUIRKY', 'Impatient': 'QUIRKY',
-    'Breathe': 'NORMAL', 'Jumping Jacks': 'NORMAL', 'Jump': 'NORMAL', 'Kick L': 'QUIRKY',
+    'Jumping Jacks': 'NORMAL', 'Jump': 'NORMAL', 'Kick L': 'QUIRKY',
     'Laugh': 'QUIRKY', 'Point Me': 'NORMAL', 'Point You': 'NORMAL', 'Punch': 'QUIRKY',
     'Run': 'NORMAL', 'Salute': 'NORMAL', 'Sit': 'NORMAL', 'Stretch': 'NORMAL',
     'Walk': 'NORMAL', 'Wave': 'NORMAL', 'Yoga': 'NORMAL', 'Zombie': 'QUIRKY',
