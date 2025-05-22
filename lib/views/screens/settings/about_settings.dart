@@ -48,7 +48,7 @@ class AboutSettings extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // App Name
               const Text(
                 'ISADRA',
@@ -59,7 +59,7 @@ class AboutSettings extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // App Version
               const Text(
                 'Version 1.0.0',
@@ -69,7 +69,7 @@ class AboutSettings extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // About Card
               Card(
                 shape: RoundedRectangleBorder(
@@ -97,7 +97,32 @@ class AboutSettings extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
+                      // Limitations Section
+                      const Text(
+                        'Scope and Limitations',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        '• Recognition of Figures: Currently limited to human figures; does not support stick figures.\n'
+                            '• Single Character Focus: Only one character can be animated at a time.\n'
+                            '• Limited Customization: Customization options are restricted to storybook creation only.\n'
+                            '• Language Support: Currently supports only English.\n'
+                            '• Internet Dependency: Requires an active internet connection for key features.\n'
+                            '• Target Audience: Designed for children aged 6-12 and teens/adults aged 13 and above.\n'
+                            '• Storybook Creation: Users can create a maximum of 20 storybooks, each with up to 20 slides.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       // Developers Section
                       const Text(
                         'Developed By',
@@ -123,7 +148,7 @@ class AboutSettings extends StatelessWidget {
                         Icons.person,
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Thesis Information
                       const Text(
                         'Thesis Information',
@@ -142,7 +167,7 @@ class AboutSettings extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Acknowledgements
                       const Text(
                         'Acknowledgements',
@@ -165,7 +190,7 @@ class AboutSettings extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Copyright
               const Text(
                 '© 2025 ISADRA Team. All rights reserved.',
