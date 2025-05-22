@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/animation_cache_manager.dart';
 
-
 class AnimationScreen extends StatefulWidget {
   const AnimationScreen({super.key});
 
@@ -20,17 +19,15 @@ class _AnimationScreenState extends State<AnimationScreen> with WidgetsBindingOb
     WidgetsBinding.instance.addObserver(this);
     loadSavedAnimations();
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh animations when dependencies change
     loadSavedAnimations();
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Refresh animations when app comes to the foreground
     if (state == AppLifecycleState.resumed) {
       loadSavedAnimations();
     }
@@ -39,7 +36,7 @@ class _AnimationScreenState extends State<AnimationScreen> with WidgetsBindingOb
   Future<void> loadSavedAnimations() async {
     final animations = await AnimationCacheManager.getSavedAnimations();
     setState(() {
-      savedAnimations = animations;
+      savedAnimations = animations.reversed.toList();
     });
   }
 
@@ -58,6 +55,45 @@ class _AnimationScreenState extends State<AnimationScreen> with WidgetsBindingOb
     });
   }
 
+  void _showAnimationOverlay(String animationPath) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop(); // Close the overlay
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Enlarged square animation view
+                Container(
+                  margin: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(animationPath),
+                      fit: BoxFit.contain,
+                      height: MediaQuery.of(context).size.width * 0.8, // Square size based on width
+                      width: MediaQuery.of(context).size.width * 0.8, // Square size based on width
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -66,7 +102,6 @@ class _AnimationScreenState extends State<AnimationScreen> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
-    // Force refresh animations when screen is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadSavedAnimations();
     });
@@ -130,65 +165,67 @@ class _AnimationScreenState extends State<AnimationScreen> with WidgetsBindingOb
                   ),
                   itemBuilder: (context, index) {
                     final animationPath = savedAnimations[index];
-                    return Stack(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.teal, width: 2),
-                            borderRadius: BorderRadius.circular(16),
-                            color: Colors.white,
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(File(animationPath), fit: BoxFit.contain),
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: InkWell(
-                            onTap: () async {
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Delete Animation'),
-                                  content: const Text('Are you sure you want to permanently delete this animation?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: const Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirmed == true) {
-                                await deleteAnimation(index);
-                              }
-                            },
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(4),
-                              child: const Icon(Icons.delete, color: Colors.white, size: 16),
+                    return GestureDetector(
+                      onTap: () => _showAnimationOverlay(animationPath), // Show overlay on tap
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.teal, width: 2),
+                              borderRadius: BorderRadius.circular(16),
+                              color: Colors.white,
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(File(animationPath), fit: BoxFit.contain),
                             ),
                           ),
-                        ),
-                      ],
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: InkWell(
+                              onTap: () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete Animation'),
+                                    content: const Text('Are you sure you want to permanently delete this animation?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirmed == true) {
+                                  await deleteAnimation(index);
+                                }
+                              },
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: const Icon(Icons.delete, color: Colors.white, size: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
-
               ),
             ),
             const SizedBox(height: 8),
