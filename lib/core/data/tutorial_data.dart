@@ -12,10 +12,10 @@ class TutorialData {
         color: Colors.blue,
         steps: [
           TutorialStep(
-            title: 'Taking a Picture',
-            description: 'Tap the camera button to take a picture of human figures. Note: The app recognizes human figures only, not stick figures.',
+            title: 'Creating or Adding Figures',
+            description: 'You have multiple options: take a photo with the camera, upload an existing photo from your gallery, or use the built-in canvas to draw. Note: The app works best with human-like figures, not stick figures.',
             imagePath: 'assets/tutorial/home_camera.png',
-            icon: Icons.camera_alt,
+            icon: Icons.add_a_photo,
             color: Colors.blue.shade300,
           ),
           TutorialStep(
@@ -27,7 +27,7 @@ class TutorialData {
           ),
           TutorialStep(
             title: 'Creating Animations',
-            description: 'Take a picture and tap "Create Animation" to make your human figures move and animate!',
+            description: 'After adding a figure, you will complete pose annotation by placing points on the figure, then select from various animation options to bring it to life.',
             imagePath: 'assets/tutorial/home_animate.png',
             icon: Icons.movie,
             color: Colors.blue.shade500,
@@ -38,30 +38,37 @@ class TutorialData {
       // Animation Section
       TutorialSection(
         title: 'Creating Animations',
-        description: 'Animate human figures in your photos',
+        description: 'Animate human-like figures in your photos',
         icon: Icons.movie,
         color: Colors.purple,
         steps: [
           TutorialStep(
-            title: 'Your Animations',
-            description: 'View all your created animations. Remember that only one character can be animated at a time.',
+            title: 'Step 1: Adding Figures',
+            description: 'Start by either taking a photo with the camera, uploading an existing photo from your gallery, or using the built-in canvas to draw a human-like figure.',
             imagePath: 'assets/tutorial/animation_list.png',
-            icon: Icons.list,
+            icon: Icons.add_a_photo,
             color: Colors.purple.shade300,
           ),
           TutorialStep(
-            title: 'Creating New Animations',
-            description: 'Tap the "+" button to create a new animation. Make sure your photo contains a clear human figure (not stick figures).',
+            title: 'Step 2: Pose Annotation',
+            description: 'After adding your figure, you will be directed to the pose annotation picker where you can choose to either manually place points or drag points to mark the figure key positions.',
             imagePath: 'assets/tutorial/animation_create.png',
-            icon: Icons.add_circle,
+            icon: Icons.touch_app,
             color: Colors.purple.shade400,
           ),
           TutorialStep(
-            title: 'Internet Requirement',
-            description: 'An active internet connection is required for animation features to work properly.',
+            title: 'Step 3: Animation Selection',
+            description: 'After saving your pose annotations, choose from various animation options to bring your figure to life.',
             imagePath: 'assets/tutorial/animation_share.png',
-            icon: Icons.wifi,
+            icon: Icons.animation,
             color: Colors.purple.shade500,
+          ),
+          TutorialStep(
+            title: 'Important Note',
+            description: 'Remember that only one character can be animated at a time, and an active internet connection is required for animation features to work properly.',
+            imagePath: 'assets/tutorial/animation_share.png',
+            icon: Icons.info,
+            color: Colors.purple.shade600,
           ),
         ],
       ),
