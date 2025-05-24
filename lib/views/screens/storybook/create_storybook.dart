@@ -601,6 +601,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                 onNext: slideManager.goToNextSlide,
                 onAdd: slideManager.addNewSlide,
                 onDelete: () => confirmDeleteSlide(context),
+                canAddMoreSlides: slideManager.canAddMoreSlides,
               ),
             ),
             Container(

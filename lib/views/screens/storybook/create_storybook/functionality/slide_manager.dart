@@ -44,6 +44,9 @@ class StorySlide {
 }
 
 class SlideManager extends ChangeNotifier {
+  // Maximum number of slides allowed per storybook
+  static const int maxSlides = 20;
+  
   List<StorySlide> _slides = [];
   int _currentSlideIndex = 0;
   bool _hasChanges = false;
@@ -72,6 +75,7 @@ class SlideManager extends ChangeNotifier {
   StorySlide get currentSlide => _slides[_currentSlideIndex];
   bool get isPlaying => _isPlaying;
   bool get hasChanges => _hasChanges;
+  bool get canAddMoreSlides => _slides.length < maxSlides;
   
   // Reset the changes flag, typically called after saving
   void resetChanges() {
@@ -116,6 +120,12 @@ class SlideManager extends ChangeNotifier {
   }
 
   void addNewSlide() {
+    // Check if slide limit has been reached
+    if (_slides.length >= maxSlides) {
+      // Don't add more slides if limit reached
+      return;
+    }
+    
     _slides.add(StorySlide());
     _currentSlideIndex = _slides.length - 1;
     _hasChanges = true;

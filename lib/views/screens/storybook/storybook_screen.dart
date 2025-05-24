@@ -41,7 +41,16 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
     }
   }
 
+  // Maximum number of storybooks allowed
+  static const int maxStorybooks = 20;
+
   void _navigateToCreateStorybook() async {
+    // Check if storybook limit has been reached
+    if (storybooks.length >= maxStorybooks) {
+      _showStorybookLimitDialog();
+      return;
+    }
+    
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CreateStorybook()),
@@ -49,6 +58,27 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
     
     // Reload storybooks when returning from create screen
     _loadStorybooks();
+  }
+  
+  void _showStorybookLimitDialog() {
+    playButtonSound(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Storybook Limit Reached'),
+          content: const Text('You have reached the maximum limit of 20 storybooks. Please delete an existing storybook to create a new one.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
