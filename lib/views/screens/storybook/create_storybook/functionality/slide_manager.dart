@@ -305,6 +305,9 @@ class TextOverlayData {
   final String text;
   final Color color;
   final String id;
+  final int fontStyle; // 0=Default, 1=Playful, 2=Bold, 3=Fancy
+  final double fontSize;
+  final bool isBold;
   OverlayPosition position;
 
   TextOverlayData({
@@ -312,6 +315,9 @@ class TextOverlayData {
     required this.color,
     String? id,
     OverlayPosition? position,
+    this.fontStyle = 0,
+    this.fontSize = 24,
+    this.isBold = false,
   }) : id = id ?? DateTime.now().toIso8601String(),
        position = position ?? OverlayPosition(x: 100, y: 100);
 
@@ -320,6 +326,9 @@ class TextOverlayData {
     'color': color.value,
     'id': id,
     'position': position.toJson(),
+    'fontStyle': fontStyle,
+    'fontSize': fontSize,
+    'isBold': isBold,
   };
 
   factory TextOverlayData.fromJson(Map<String, dynamic> json) {
@@ -328,6 +337,9 @@ class TextOverlayData {
       color: Color(json['color'] as int),
       id: json['id'] as String,
       position: OverlayPosition.fromJson(json['position'] as Map<String, dynamic>),
+      fontStyle: json['fontStyle'] as int? ?? 0,
+      fontSize: (json['fontSize'] as num?)?.toDouble() ?? 24,
+      isBold: json['isBold'] as bool? ?? false,
     );
   }
 }

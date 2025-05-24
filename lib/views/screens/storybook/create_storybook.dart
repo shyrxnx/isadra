@@ -678,6 +678,9 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
           textData.position.scale,
           textData.id,
           (x, y, scale) => slideManager.updateTextPosition(index, x, y, scale),
+          fontStyle: textData.fontStyle,
+          fontSize: textData.fontSize,
+          isBold: textData.isBold,
         ),
         Positioned(
           top: 8,
@@ -706,8 +709,14 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
   }
 
   void _addTextOverlay(BuildContext context, SlideManager slideManager) {
-    TextEditor.showTextDialog(context, (String text, Color color) {
-      slideManager.addCurrentText(TextOverlayData(text: text, color: color));
+    TextEditor.showTextDialog(context, (String text, Color color, int fontStyle, double fontSize, bool isBold) {
+      slideManager.addCurrentText(TextOverlayData(
+        text: text,
+        color: color,
+        fontStyle: fontStyle,
+        fontSize: fontSize,
+        isBold: isBold
+      ));
     });
   }
 
