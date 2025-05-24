@@ -86,11 +86,13 @@ class SoundTextButton extends StatelessWidget with SoundMixin {
 class SoundGestureDetector extends StatelessWidget with SoundMixin {
   final Widget child;
   final GestureTapCallback? onTap;
+  final GestureLongPressCallback? onLongPress;
 
   const SoundGestureDetector({
     Key? key,
     required this.child,
     this.onTap,
+    this.onLongPress,
   }) : super(key: key);
 
   @override
@@ -101,6 +103,12 @@ class SoundGestureDetector extends StatelessWidget with SoundMixin {
           : () {
               playButtonSound(context);
               onTap!();
+            },
+      onLongPress: onLongPress == null
+          ? null
+          : () {
+              playButtonSound(context);
+              onLongPress!();
             },
       child: child,
     );
