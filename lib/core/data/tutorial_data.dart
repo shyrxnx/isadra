@@ -89,7 +89,7 @@ class TutorialData {
           ),
           TutorialStep(
             title: 'Adding Slides',
-            description: 'Tap the "+" button in the slide navigation to add more slides, up to a maximum of 20 slides per storybook.',
+            description: 'Tap the "+" or ">" button in the slide navigation to add more slides, up to a maximum of 20 slides per storybook.',
             imagePath: 'assets/tutorial/storybook_add_page.png',
             icon: Icons.add_box,
             color: Colors.orange.shade500,
