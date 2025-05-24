@@ -3,8 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '/core/services/api_service.dart';
 import 'package:provider/provider.dart';
+import '../../screens/animation/mask_confirmation_screen.dart';
 import '../../../core/state/processed_image.dart';
-import '../animation/annotation_picker.dart';
 import 'draw_screen.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PoseAnnotationChoiceScreen(imageName: imageName),
+                      builder: (context) => MaskConfirmationScreen(imageName: imageName),
                     ),
                   );
                 } else {
@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PoseAnnotationChoiceScreen(imageName: ''),
+        builder: (context) => const MaskConfirmationScreen(imageName: ''),
       ),
     );
   }

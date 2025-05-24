@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '/core/services/api_service.dart';
 import 'package:provider/provider.dart';
 import '../../../core/state/processed_image.dart';
-import '../animation/annotation_picker.dart';
+import '../animation/mask_confirmation_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:image/image.dart' as img;
 
@@ -241,7 +241,7 @@ class _DrawScreenState extends State<DrawScreen> {
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PoseAnnotationChoiceScreen(imageName: imageName),
+                  builder: (context) => MaskConfirmationScreen(imageName: imageName),
                 ));
           } else {
             print('Error: Unexpected JSON structure in API response from DrawScreen');
@@ -258,7 +258,7 @@ class _DrawScreenState extends State<DrawScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => const PoseAnnotationChoiceScreen(
+                builder: (context) => const MaskConfirmationScreen(
                   imageName: '',
                 )),
           );
