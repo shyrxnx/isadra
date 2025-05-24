@@ -46,9 +46,11 @@ class StorySlide {
 class SlideManager extends ChangeNotifier {
   List<StorySlide> _slides = [];
   int _currentSlideIndex = 0;
+  bool _hasChanges = false;
 
   SlideManager() {
     _slides.add(StorySlide());  // Add initial slide
+    _hasChanges = false; // New storybook starts with no changes
   }
   
   // Constructor to initialize from an existing storybook
@@ -58,6 +60,8 @@ class SlideManager extends ChangeNotifier {
     manager._slides.clear();
     // Add all slides from the storybook
     manager._slides.addAll(storybook.slides);
+    // Start with no changes since we're loading an existing storybook
+    manager._hasChanges = false;
     return manager;
   }
   bool _isPlaying = false;
@@ -67,9 +71,17 @@ class SlideManager extends ChangeNotifier {
   int get currentSlideIndex => _currentSlideIndex;
   StorySlide get currentSlide => _slides[_currentSlideIndex];
   bool get isPlaying => _isPlaying;
+  bool get hasChanges => _hasChanges;
+  
+  // Reset the changes flag, typically called after saving
+  void resetChanges() {
+    _hasChanges = false;
+    notifyListeners();
+  }
 
   void updateSlideDuration(Duration duration) {
     _slides[_currentSlideIndex].duration = duration.inSeconds;
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -106,6 +118,7 @@ class SlideManager extends ChangeNotifier {
   void addNewSlide() {
     _slides.add(StorySlide());
     _currentSlideIndex = _slides.length - 1;
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -136,6 +149,7 @@ class SlideManager extends ChangeNotifier {
   void updateCurrentBackground(File? file) {
     _slides[_currentSlideIndex].backgroundImageFile = file;
     _slides[_currentSlideIndex].backgroundImagePath = file?.path;
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -150,6 +164,7 @@ class SlideManager extends ChangeNotifier {
       ),
     );
     _slides[_currentSlideIndex].animations.add(newAnimation);
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -160,6 +175,7 @@ class SlideManager extends ChangeNotifier {
       y: y,
       scale: scale,
     );
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -170,21 +186,25 @@ class SlideManager extends ChangeNotifier {
       y: y,
       scale: scale,
     );
+    _hasChanges = true;
     notifyListeners();
   }
 
   void removeCurrentAnimation(int index) {
     _slides[_currentSlideIndex].animations.removeAt(index);
+    _hasChanges = true;
     notifyListeners();
   }
 
   void addCurrentText(TextOverlayData textData) {
     _slides[_currentSlideIndex].texts.add(textData);
+    _hasChanges = true;
     notifyListeners();
   }
 
   void removeCurrentText(int index) {
     _slides[_currentSlideIndex].texts.removeAt(index);
+    _hasChanges = true;
     notifyListeners();
   }
 
@@ -194,6 +214,7 @@ class SlideManager extends ChangeNotifier {
     if (_currentSlideIndex >= _slides.length) {
       _currentSlideIndex = _slides.length - 1;
     }
+    _hasChanges = true;
     notifyListeners();
   }
 

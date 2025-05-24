@@ -43,6 +43,9 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
   final TextEditingController _titleController = TextEditingController();
   String? _savedStoryId;  // Track if this story was already saved
   int _selectedDuration = 5;
+  bool _hasUnsavedChanges = false;
+  String _lastSavedTitle = '';  // Track the title at last save
+  bool _isInitialBuild = true; // Flag to ignore initial change notifications
 
   @override
   void initState() {
@@ -51,8 +54,22 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     // Initialize with existing storybook data if available
     if (widget.existingStorybook != null) {
       _titleController.text = widget.existingStorybook!.title;
+      _lastSavedTitle = widget.existingStorybook!.title;
       _savedStoryId = widget.existingStorybook!.id;
+      _hasUnsavedChanges = false;
     }
+    
+    // Listen for changes to the title, but with check to avoid initial change
+    _titleController.addListener(() {
+      if (!_isInitialBuild) {
+        // Only track changes after the initial build
+        if (_titleController.text != _lastSavedTitle) {
+          _markAsUnsaved();
+        }
+      }
+    });
+    
+    // We'll handle SlideManager changes more carefully
   }
   // Add a state variable to track progress within a slide
   double _slideProgress = 0.0;
@@ -61,7 +78,17 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
   @override
   void dispose() {
     _progressTimer?.cancel();
+    _titleController.removeListener(_markAsUnsaved);
+    _titleController.dispose();
     super.dispose();
+  }
+  
+  void _markAsUnsaved() {
+    if (!_isInitialBuild) { // Skip during initial setup
+      setState(() {
+        _hasUnsavedChanges = true;
+      });
+    }
   }
 
   void _startProgressTimer(SlideManager slideManager) {
@@ -325,6 +352,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
   }
 
   Future<bool> _onWillPop(SlideManager slideManager) async {
+    // If there's no content or no slides, allow exit without saving
     if (slideManager.slides.isEmpty) {
       return true;
     }
@@ -343,6 +371,16 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
       return true;
     }
 
+    // If we have content but no unsaved changes, allow exit without showing dialog
+    bool titleUnchanged = _titleController.text == _lastSavedTitle;
+    bool contentUnchanged = !slideManager.hasChanges;
+    
+    // If nothing has changed and this is an existing storybook, allow exit without dialog
+    if (titleUnchanged && contentUnchanged && _savedStoryId != null) {
+      return true;
+    }
+
+    // Otherwise show the save dialog
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -397,6 +435,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
 
     if (title.isEmpty) {
       title = 'Unnamed${await _getNextUnnamedNumber()}';
+      _titleController.text = title; // Update the text field
     }
 
     final storybook = Storybook(
@@ -408,6 +447,15 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
 
     await Storybook.saveStorybook(storybook);
     _savedStoryId = storybook.id;  // Remember this story's ID
+    _lastSavedTitle = title;       // Remember the saved title
+    
+    // Reset the unsaved changes flags
+    setState(() {
+      _hasUnsavedChanges = false;
+    });
+    
+    // Reset changes in the SlideManager too
+    slideManager.resetChanges();
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -422,8 +470,25 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
 
   @override
   Widget build(BuildContext context) {
-    final slideManager = Provider.of<SlideManager>(context);
+    // Get the slide manager with listener for changes
+    final slideManager = Provider.of<SlideManager>(context, listen: true);
     final currentSlide = slideManager.currentSlide;
+    
+    // After the first build, mark as not initial anymore to start tracking changes
+    if (_isInitialBuild) {
+      // Use a microtask to run after this build completes
+      Future.microtask(() {
+        setState(() {
+          _isInitialBuild = false;
+        });
+      });
+    } else {
+      // After initial build, track SlideManager changes
+      // Using didChangeDependencies would be better, but this will work too
+      if (slideManager.hasChanges) {
+        _markAsUnsaved();
+      }
+    }
 
     if (slideManager.isPlaying) {
       return _buildPresentationMode(slideManager);
