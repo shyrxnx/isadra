@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'create_storybook.dart';
 import '../../../models/storybook.dart';
@@ -167,7 +168,7 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Storybook preview area (placeholder for now)
+            // Storybook preview area - shows first slide as thumbnail
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -177,14 +178,50 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
+                  // If the first slide has a background image, use it as the thumbnail
+                  image: storybook.slides.isNotEmpty && 
+                         storybook.slides[0].backgroundImagePath != null
+                      ? DecorationImage(
+                          image: FileImage(File(storybook.slides[0].backgroundImagePath!)),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.book,
-                    size: 48,
-                    color: Colors.teal,
-                  ),
-                ),
+                // If there's no background image, show a book icon
+                child: (storybook.slides.isEmpty || 
+                       storybook.slides[0].backgroundImagePath == null)
+                    ? const Center(
+                        child: Icon(
+                          Icons.book,
+                          size: 48,
+                          color: Colors.teal,
+                        ),
+                      )
+                    : Stack(
+                        children: [
+                          // Show any text overlays from the first slide (limited to first two for preview)
+                          if (storybook.slides.isNotEmpty && storybook.slides[0].texts.isNotEmpty)
+                            ...storybook.slides[0].texts.take(2).map((textData) => 
+                              Positioned(
+                                left: textData.position.x,
+                                top: textData.position.y,
+                                child: Transform.scale(
+                                  scale: textData.position.scale * 0.7, // Slightly smaller in preview
+                                  child: Text(
+                                    textData.text,
+                                    style: TextStyle(
+                                      fontSize: 20, // Smaller text for preview
+                                      fontWeight: FontWeight.bold,
+                                      color: textData.color,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
               ),
             ),
             // Storybook info
@@ -201,14 +238,6 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Created: ${_formatDate(storybook.createdAt)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
