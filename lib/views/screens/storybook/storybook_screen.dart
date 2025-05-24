@@ -157,6 +157,10 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
           _loadStorybooks();
         });
       },
+      onLongPress: () {
+        // Show delete confirmation dialog
+        _showDeleteConfirmation(storybook);
+      },
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -225,5 +229,61 @@ class _StorybookScreenState extends State<StorybookScreen> with SoundMixin {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
+  }
+
+  void _showDeleteConfirmation(Storybook storybook) {
+    playButtonSound(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Storybook'),
+          content: Text('Are you sure you want to delete "${storybook.title}"?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Delete the storybook
+                await _deleteStorybook(storybook.id);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteStorybook(String id) async {
+    try {
+      // Call the static delete method from the Storybook model
+      await Storybook.deleteStorybook(id);
+      
+      // Refresh the storybook list
+      _loadStorybooks();
+      
+      // Show a snackbar to confirm deletion
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Storybook deleted successfully')),
+        );
+      }
+    } catch (e) {
+      // Show error message if deletion fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete storybook: $e')),
+        );
+      }
+    }
   }
 }
