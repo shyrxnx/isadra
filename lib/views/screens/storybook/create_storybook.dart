@@ -411,7 +411,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     return result ?? false;
   }
 
-  Future<String> _getNextUnnamedNumber() async {
+  Future<int> _getNextUnnamedNumber() async {
     final storybooks = await Storybook.loadStorybooks();
     int maxNumber = 0;
 
@@ -427,15 +427,21 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
       }
     }
 
-    return maxNumber > 0 ? ' ${maxNumber + 1}' : '';
+    // Always return at least 1, or the next number
+    return maxNumber + 1;
   }
 
   Future<void> _saveStorybook(SlideManager slideManager) async {
     String title = _titleController.text.trim();
 
-    if (title.isEmpty) {
-      title = 'Unnamed${await _getNextUnnamedNumber()}';
+    // Always get a new number for unnamed storybooks (even when resaving)
+    if (title.isEmpty || title.startsWith('Unnamed')) {
+      int nextNumber = await _getNextUnnamedNumber();
+      title = 'Unnamed $nextNumber'; // Add a space between Unnamed and the number
       _titleController.text = title; // Update the text field
+      
+      // For debugging - show what number was generated
+      print('Generated storybook name: $title with number: $nextNumber');
     }
 
     final storybook = Storybook(
