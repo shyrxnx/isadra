@@ -42,7 +42,7 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
 
               // Welcome text
               Text(
-                context.tr('tutorial_welcome'),
+                'Welcome to ISADRA',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -52,7 +52,7 @@ class TutorialSettings extends StatelessWidget with SoundMixin {
               ),
               const SizedBox(height: 10),
               Text(
-                context.tr('tutorial_intro'),
+                'An interactive storytelling app for creating animations and storybooks using human figures',
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.white,
