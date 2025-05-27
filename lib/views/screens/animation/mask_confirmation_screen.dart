@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/state/processed_image.dart';
 import 'annotation_picker.dart';
-import '../../../core/services/supabase_storage.dart';
 
 class MaskConfirmationScreen extends StatefulWidget {
   final String imageName;
@@ -19,14 +18,11 @@ class _MaskConfirmationScreenState extends State<MaskConfirmationScreen> {
   ui.Image? _maskImage;
   bool _isLoading = true;
   String? _errorMessage;
-  final SupabaseStorageService _storageService = SupabaseStorageService();
 
   @override
   void initState() {
     super.initState();
     _loadMaskImage();
-    _loadOriginalImage(); // Load the original image
-    _loadTextureImage(); // Load the texture image
   }
 
   Future<void> _loadMaskImage() async {
@@ -35,17 +31,12 @@ class _MaskConfirmationScreenState extends State<MaskConfirmationScreen> {
       _errorMessage = null;
     });
     
-    try {
-      // Instead of using ProcessedImageProvider directly
-      // Get the mask URL from Supabase
-      final maskUrl = await _storageService.getCharacterMaskUrl(widget.imageName);
-      
-      print('Loading mask from URL: $maskUrl'); // Debug log
-      
-      if (maskUrl != null && maskUrl.isNotEmpty) {
+    final processedImageProvider = Provider.of<ProcessedImageProvider>(context, listen: false);
+    final maskUrl = processedImageProvider.maskImageUrl;
+
+    if (maskUrl != null && maskUrl.isNotEmpty) {
+      try {
         final response = await http.get(Uri.parse(maskUrl));
-        print('Response status: ${response.statusCode}'); // Debug log
-        
         if (response.statusCode == 200) {
           final bytes = response.bodyBytes;
           ui.decodeImageFromList(bytes, (ui.Image img) {
@@ -62,16 +53,16 @@ class _MaskConfirmationScreenState extends State<MaskConfirmationScreen> {
             _errorMessage = 'Failed to load mask: ${response.statusCode}';
           });
         }
-      } else {
+      } catch (e) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No mask URL available';
+          _errorMessage = 'Error loading mask: $e';
         });
       }
-    } catch (e) {
+    } else {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading mask: $e';
+        _errorMessage = 'No mask image available';
       });
     }
   }
@@ -92,41 +83,10 @@ class _MaskConfirmationScreenState extends State<MaskConfirmationScreen> {
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
-  String? _originalImageUrl;
-  String? _textureImageUrl;
-
-  Future<void> _loadOriginalImage() async {
-    try {
-      final url = await _storageService.getCharacterOriginalImageUrl(widget.imageName);
-      if (url != null && mounted) {
-        setState(() {
-          _originalImageUrl = url;
-        });
-      }
-    } catch (e) {
-      print('Error loading original image: $e');
-    }
-  }
-  
-  Future<void> _loadTextureImage() async {
-    try {
-      final url = await _storageService.getCharacterTextureUrl(widget.imageName);
-      if (url != null && mounted) {
-        setState(() {
-          _textureImageUrl = url;
-        });
-      }
-    } catch (e) {
-      print('Error loading texture image: $e');
-    }
-  }
-
-  // initState is already defined above
-
   @override
   Widget build(BuildContext context) {
-    // Use the Supabase URL instead of ProcessedImageProvider
-    final originalImageUrl = _originalImageUrl;
+    final processedImageProvider = Provider.of<ProcessedImageProvider>(context);
+    final originalImageUrl = processedImageProvider.originalImageUrl;
 
     return Scaffold(
       appBar: AppBar(
@@ -234,9 +194,9 @@ class _MaskConfirmationScreenState extends State<MaskConfirmationScreen> {
                                     child: Stack(
                                       children: [
                                         // Texture image
-                                        if (_textureImageUrl != null && _textureImageUrl!.isNotEmpty)
+                                        if (processedImageProvider.textureImageUrl != null && processedImageProvider.textureImageUrl!.isNotEmpty)
                                           Image.network(
-                                            _textureImageUrl!,
+                                            processedImageProvider.textureImageUrl!,
                                             fit: BoxFit.contain,
                                             width: constraints.maxWidth,
                                             height: constraints.maxWidth,

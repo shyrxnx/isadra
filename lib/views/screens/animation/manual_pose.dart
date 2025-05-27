@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import '../../../core/state/processed_image.dart';
 import '../../../core/services/api_service.dart';
 import '../animation/animation_picker.dart';
-import '../../../core/services/supabase_storage.dart';
 
 class ManualPoseAnnotationScreen extends StatefulWidget {
   final String imageName;
@@ -26,7 +25,6 @@ class _ManualPoseAnnotationScreenState extends State<ManualPoseAnnotationScreen>
   ui.Image? _maskImage;
   final GlobalKey _imageStackKey = GlobalKey();
   String? _currentImageName;
-  final SupabaseStorageService _storageService = SupabaseStorageService();
 
   final List<String> _keypointNames = const [
     "Root", "Hip", "Torso", "Neck",
@@ -38,55 +36,20 @@ class _ManualPoseAnnotationScreenState extends State<ManualPoseAnnotationScreen>
 
   bool _showInstructions = true; // Flag to show/hide instructions
 
-  String? _textureImageUrl;
-  String? _originalImageUrl;
-
-  Future<void> _loadTextureImage() async {
-    try {
-      final url = await _storageService.getCharacterTextureUrl(widget.imageName);
-      if (url != null && mounted) {
-        setState(() {
-          _textureImageUrl = url;
-        });
-      }
-    } catch (e) {
-      print('Error loading texture image: $e');
-    }
-  }
-  
-  Future<void> _loadOriginalImage() async {
-    try {
-      final url = await _storageService.getCharacterOriginalImageUrl(widget.imageName);
-      if (url != null && mounted) {
-        setState(() {
-          _originalImageUrl = url;
-        });
-      }
-    } catch (e) {
-      print('Error loading original image: $e');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _loadMaskImage();
-    _loadTextureImage();
-    _loadOriginalImage();
     _currentImageName = widget.imageName;
   }
 
   Future<void> _loadMaskImage() async {
-    try {
-      // Get the mask URL from Supabase
-      final maskUrl = await _storageService.getCharacterMaskUrl(widget.imageName);
-      
-      print('Loading mask from URL: $maskUrl'); // Debug log
-      
-      if (maskUrl != null && maskUrl.isNotEmpty) {
+    final processedImageProvider = Provider.of<ProcessedImageProvider>(context, listen: false);
+    final maskUrl = processedImageProvider.maskImageUrl;
+
+    if (maskUrl != null && maskUrl.isNotEmpty) {
+      try {
         final response = await http.get(Uri.parse(maskUrl));
-        print('Response status: ${response.statusCode}'); // Debug log
-        
         if (response.statusCode == 200) {
           final bytes = response.bodyBytes;
           ui.decodeImageFromList(bytes, (ui.Image img) {
@@ -97,13 +60,11 @@ class _ManualPoseAnnotationScreenState extends State<ManualPoseAnnotationScreen>
             }
           });
         } else {
-          print('Oops! We couldn\'t load the mask image. Please try again later. Status: ${response.statusCode}');
+          print('Oops! We couldn\'t load the mask image. Please try again later.');
         }
-      } else {
-        print('No mask URL available');
+      } catch (e) {
+        print('Oops! Something went wrong while loading the mask image: $e');
       }
-    } catch (e) {
-      print('Oops! Something went wrong while loading the mask image: $e');
     }
   }
 
@@ -249,9 +210,10 @@ class _ManualPoseAnnotationScreenState extends State<ManualPoseAnnotationScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Use Supabase URLs instead of ProcessedImageProvider
-    final textureImageUrl = _textureImageUrl;
-    final originalImageUrl = _originalImageUrl;
+    final processedImageProvider = Provider.of<ProcessedImageProvider>(context);
+    final maskImageUrl = processedImageProvider.maskImageUrl;
+    final textureImageUrl = processedImageProvider.textureImageUrl;
+    final originalImageUrl = processedImageProvider.originalImageUrl;
 
     return WillPopScope(
       onWillPop: _onWillPop,
