@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/state/processed_image.dart';
 import '../../../core/services/api_service.dart';
 import '../animation/animation_picker.dart';
+import '../../../core/services/supabase_storage.dart';
 
 class ManualPoseDragScreen extends StatefulWidget {
   final String imageName;
@@ -22,6 +23,9 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
   final GlobalKey _imageStackKey = GlobalKey();
   String? _currentImageName;
   bool _isLoading = true;
+  final SupabaseStorageService _storageService = SupabaseStorageService();
+  String? _textureImageUrl;
+  String? _originalImageUrl;
   
   // Index of the keypoint being dragged
   int? _draggingKeypointIndex; 
@@ -45,8 +49,36 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
   void initState() {
     super.initState();
     _loadMaskImage();
+    _loadTextureImage();
+    _loadOriginalImage();
     _currentImageName = widget.imageName;
     _initializeKeypoints(); // Initialize keypoints with default positions
+  }
+  
+  Future<void> _loadTextureImage() async {
+    try {
+      final url = await _storageService.getCharacterTextureUrl(widget.imageName);
+      if (url != null && mounted) {
+        setState(() {
+          _textureImageUrl = url;
+        });
+      }
+    } catch (e) {
+      print('Error loading texture image: $e');
+    }
+  }
+  
+  Future<void> _loadOriginalImage() async {
+    try {
+      final url = await _storageService.getCharacterOriginalImageUrl(widget.imageName);
+      if (url != null && mounted) {
+        setState(() {
+          _originalImageUrl = url;
+        });
+      }
+    } catch (e) {
+      print('Error loading original image: $e');
+    }
   }
 
   // Initialize keypoints with default positions
@@ -167,12 +199,16 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
       _isLoading = true;
     });
     
-    final processedImageProvider = Provider.of<ProcessedImageProvider>(context, listen: false);
-    final maskUrl = processedImageProvider.maskImageUrl;
-
-    if (maskUrl != null && maskUrl.isNotEmpty) {
-      try {
+    try {
+      // Get the mask URL from Supabase
+      final maskUrl = await _storageService.getCharacterMaskUrl(widget.imageName);
+      
+      print('Loading mask from URL: $maskUrl'); // Debug log
+      
+      if (maskUrl != null && maskUrl.isNotEmpty) {
         final response = await http.get(Uri.parse(maskUrl));
+        print('Response status: ${response.statusCode}'); // Debug log
+        
         if (response.statusCode == 200) {
           final bytes = response.bodyBytes;
           ui.decodeImageFromList(bytes, (ui.Image img) {
@@ -184,22 +220,19 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
             }
           });
         } else {
+          print('Oops! We couldn\'t load the mask image. Please try again later. Status: ${response.statusCode}');
           setState(() {
             _isLoading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Oops! We couldn\'t load the mask image. Please try again later.'))
-          );
         }
-      } catch (e) {
+      } else {
+        print('No mask URL available');
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Oops! Something went wrong: $e'))
-        );
       }
-    } else {
+    } catch (e) {
+      print('Oops! Something went wrong while loading the mask image: $e');
       setState(() {
         _isLoading = false;
       });
@@ -443,9 +476,8 @@ class _ManualPoseDragScreenState extends State<ManualPoseDragScreen> {
         _poseModified = false;
         
         // Get URLs for next screen
-        final processedImageProvider = Provider.of<ProcessedImageProvider>(context, listen: false);
-        final textureImageUrl = processedImageProvider.textureImageUrl;
-        final originalImageUrl = processedImageProvider.originalImageUrl;
+        final textureImageUrl = _textureImageUrl;
+        final originalImageUrl = _originalImageUrl;
         
         // Navigate to animation picker
         Navigator.push(
