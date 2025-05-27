@@ -7,14 +7,10 @@ import 'core/state/processed_image.dart';
 import 'core/services/animation_cache_manager.dart';
 import 'core/services/sound_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'core/services/supabase_client.dart';
 
 void main() async {
   // Ensure that the app waits for dotenv to load the environment variables
   await dotenv.load();
-  
-  // Initialize Supabase
-  await SupabaseManager.initialize();
 
   runApp(
     MultiProvider(
