@@ -6,6 +6,8 @@ import 'core/widgets/bottom_nav_bar.dart';
 import 'core/state/processed_image.dart';
 import 'core/services/animation_cache_manager.dart';
 import 'core/services/sound_service.dart';
+import 'core/services/preferences_service.dart';
+import 'views/screens/settings/terms_conditions_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -72,7 +74,32 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const BottomNavBar(),
+      home: FutureBuilder<bool>(
+        future: PreferencesService().hasAcceptedTerms(),
+        builder: (context, snapshot) {
+          // Check if the future has completed
+          if (snapshot.connectionState == ConnectionState.done) {
+            final bool hasAcceptedTerms = snapshot.data ?? false;
+            
+            // If user hasn't accepted terms, show the terms screen
+            if (!hasAcceptedTerms) {
+              return TermsConditionsScreen(
+                isFirstLaunch: true,
+              );
+            }
+            
+            // If terms are accepted, show the main app
+            return const BottomNavBar();
+          }
+          
+          // Show a loading spinner while waiting
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
+      ),
     );
   }
 }

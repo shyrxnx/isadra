@@ -63,6 +63,12 @@ const Map<String, Map<String, String>> translations = {
     'sound_settings': 'Sound Settings',
     'select_sound': 'Select Sound:',
     'sound_on_off': 'Sound:',
+    
+    // Terms & Conditions
+    'terms_and_conditions': 'Terms & Conditions',
+    'protection_of_minors': 'Protection of Minors',
+    'protection_of_minors_content': 'ISADRA is designed with child safety in mind. We ask that parents and guardians monitor their child\'s use of this app. Please be aware of the following:\n\n1. Children should be supervised when using the app\'s drawing and creation features.\n\n2. Parents/guardians are responsible for monitoring the content their child creates within the app.\n\n3. We encourage parents to regularly review their child\'s storybooks and drawings for appropriate content.\n\n4. The app does not actively monitor or screen the content created by users.\n\n5. If inappropriate content is created, parents should guide their children on proper usage and delete such content.\n\nBy continuing to use this application, you acknowledge that you understand these terms and will take appropriate measures to ensure the safety of minors using this app.',
+    'accept_and_continue': 'Accept and Continue',
   },
 };
 

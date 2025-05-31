@@ -5,6 +5,7 @@ import 'sound_settings.dart';
 import 'report_settings.dart';
 import 'tutorial_settings.dart';
 import 'about_settings.dart';
+import 'terms_conditions_screen.dart';
 
 class SettingsScreen extends StatelessWidget with SoundMixin {
   const SettingsScreen({super.key});
@@ -68,6 +69,17 @@ class SettingsScreen extends StatelessWidget with SoundMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const AboutSettings()),
+                      );
+                    },
+                  ),
+                  _SettingsItem(
+                    icon: Icons.security,
+                    text: context.tr('terms_and_conditions') ?? 'Terms & Conditions',
+                    onTap: () {
+                      playNavigationSound(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TermsConditionsScreen()),
                       );
                     },
                   ),
