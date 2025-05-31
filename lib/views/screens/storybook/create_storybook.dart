@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'create_storybook/widgets/slide_navigation.dart';
 import 'create_storybook/functionality/slide_manager.dart';
 import 'create_storybook/widgets/animation_overlay.dart';
+import 'create_storybook/widgets/slide_thumbnail.dart';
 import 'package:provider/provider.dart';
 import '../../../models/storybook.dart';
 
@@ -260,7 +261,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                         ),
                       ),
                     ),
-                  // Texts - clean version without edit controls (unchanged)
+                  // Texts - clean version without edit controls
                   for (final textData in slideManager.currentSlide.texts)
                     Positioned(
                       left: textData.position.x,
@@ -270,8 +271,8 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                         child: Text(
                           textData.text,
                           style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontSize: textData.fontSize,
+                            fontWeight: textData.isBold ? FontWeight.bold : FontWeight.normal,
                             color: textData.color,
                           ),
                         ),
@@ -281,7 +282,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
               ),
             ),
             
-            // Progress indicator below the content - now accurately tracking time within slide
+            // Progress indicator below the content
             Padding(
               padding: const EdgeInsets.only(top: 16.0, left: 32.0, right: 32.0),
               child: Column(
@@ -592,6 +593,13 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                 ),
               ),
             ),
+            // Thumbnail row for slide preview and quick navigation
+            SlideThumbnailRow(
+              slideManager: slideManager,
+              onSlideSelected: (index) {
+                slideManager.goToSlide(index);
+              },
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: SlideNavigation(
@@ -599,7 +607,20 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                 totalSlides: slideManager.slides.length,
                 onPrevious: slideManager.goToPreviousSlide,
                 onNext: slideManager.goToNextSlide,
-                onAdd: slideManager.addNewSlide,
+                onAdd: () {
+                  // Check if the current slide is empty before adding a new one
+                  if (slideManager.isCurrentSlideEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please add content to the current slide before adding a new one'),
+                        backgroundColor: Colors.orange,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    slideManager.addNewSlide();
+                  }
+                },
                 onDelete: () => confirmDeleteSlide(context),
                 canAddMoreSlides: slideManager.canAddMoreSlides,
               ),

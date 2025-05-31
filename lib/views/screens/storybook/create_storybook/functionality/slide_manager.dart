@@ -77,6 +77,19 @@ class SlideManager extends ChangeNotifier {
   bool get hasChanges => _hasChanges;
   bool get canAddMoreSlides => _slides.length < maxSlides;
   
+  // Check if a slide is empty (no background, animations, or text)
+  bool isSlideEmpty(int slideIndex) {
+    if (slideIndex < 0 || slideIndex >= _slides.length) return true;
+    
+    final slide = _slides[slideIndex];
+    return slide.backgroundImageFile == null && 
+           slide.animations.isEmpty && 
+           slide.texts.isEmpty;
+  }
+  
+  // Check if the current slide is empty
+  bool get isCurrentSlideEmpty => isSlideEmpty(_currentSlideIndex);
+  
   // Reset the changes flag, typically called after saving
   void resetChanges() {
     _hasChanges = false;
@@ -126,6 +139,12 @@ class SlideManager extends ChangeNotifier {
       return;
     }
     
+    // Check if current slide is empty
+    if (isCurrentSlideEmpty) {
+      // Don't add more slides if current one is empty
+      return;
+    }
+    
     _slides.add(StorySlide());
     _currentSlideIndex = _slides.length - 1;
     _hasChanges = true;
@@ -153,6 +172,17 @@ class SlideManager extends ChangeNotifier {
       notifyListeners();
     } else {
       addNewSlide(); // Optionally add a new slide at the end
+    }
+  }
+
+  void goToSlide(int index) {
+    if (index >= 0 && index < _slides.length && index != _currentSlideIndex) {
+      _currentSlideIndex = index;
+      // If in presentation mode, reset the timer for the new slide
+      if (_isPlaying) {
+        _scheduleNextSlide();
+      }
+      notifyListeners();
     }
   }
 
