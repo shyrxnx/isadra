@@ -248,6 +248,30 @@ class SlideManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void deleteCurrentSlide() {
+    if (_slides.length <= 1) {
+      // Don't allow deleting the last slide, just clear it
+      _slides[0] = StorySlide();
+    } else {
+      _slides.removeAt(_currentSlideIndex);
+      // If we deleted the last slide, move the index back
+      if (_currentSlideIndex >= _slides.length) {
+        _currentSlideIndex = _slides.length - 1;
+      }
+    }
+    _hasChanges = true;
+    notifyListeners();
+  }
+  
+  // Deletes all pages in the storybook and leaves one empty page
+  void deleteAllSlides() {
+    // Keep only one empty slide
+    _slides = [StorySlide()];
+    _currentSlideIndex = 0;
+    _hasChanges = true;
+    notifyListeners();
+  }
+
   void removeSlide(int index) {
     if (index < 0 || index >= _slides.length) return;
     _slides.removeAt(index);

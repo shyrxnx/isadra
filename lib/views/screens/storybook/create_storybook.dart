@@ -352,12 +352,16 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     );
   }
 
-  Future<bool> _onWillPop(SlideManager slideManager) async {
-    // If there's no content or no slides, allow exit without saving
+  Future<bool> _onWillPop(SlideManager slideManager, [BuildContext? contextParam]) async {
+    // Use provided context or the current build context
+    final BuildContext effectiveContext = contextParam ?? context;
+    
+    // If there's no slides at all (should never happen), allow exit
     if (slideManager.slides.isEmpty) {
       return true;
     }
 
+    // Check if we have any non-empty slides
     bool hasContent = false;
     for (var slide in slideManager.slides) {
       if (slide.backgroundImageFile != null ||
@@ -368,22 +372,29 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
       }
     }
 
-    if (!hasContent) {
-      return true;
-    }
-
-    // If we have content but no unsaved changes, allow exit without showing dialog
+    // Check for changes, either in title or in slide content
     bool titleUnchanged = _titleController.text == _lastSavedTitle;
     bool contentUnchanged = !slideManager.hasChanges;
     
-    // If nothing has changed and this is an existing storybook, allow exit without dialog
-    if (titleUnchanged && contentUnchanged && _savedStoryId != null) {
+    // If there are changes (including deletions), prompt to save
+    bool hasChanges = !titleUnchanged || !contentUnchanged;
+    
+    // If nothing has changed, allow exit without dialog
+    if (!hasChanges && _savedStoryId != null) {
       return true;
     }
+    
+    // If there's no content and this is a new storybook (not saved yet), don't prompt
+    if (!hasContent && _savedStoryId == null && !hasChanges) {
+      return true;
+    }
+    
+    // Always show the save dialog if there are changes (even with empty content)
+    // This ensures deletions are properly saved
 
     // Otherwise show the save dialog
     final result = await showDialog<bool>(
-      context: context,
+      context: effectiveContext,
       builder: (context) => AlertDialog(
         title: const Text('Save Storybook?'),
         content: const Text('Do you want to save your storybook before leaving?'),
@@ -502,14 +513,14 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     }
 
     return WillPopScope(
-      onWillPop: () => _onWillPop(slideManager),
+      onWillPop: () => _onWillPop(slideManager, context),
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: const Color(0xFF5AC8FA),
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.teal),
-            onPressed: () => _onWillPop(slideManager).then((canPop) {
+            onPressed: () => _onWillPop(slideManager, context).then((canPop) {
               if (canPop) Navigator.pop(context);
             }),
           ),
@@ -530,6 +541,26 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
           IconButton(
             icon: const Icon(Icons.timer, color: Colors.teal),
             onPressed: () => _showDurationPicker(context),
+          ),
+          // More options menu
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.teal),
+            onSelected: (value) {
+              if (value == 'delete_all') {
+                confirmDeleteAllPages(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'delete_all',
+                child: ListTile(
+                  leading: Icon(Icons.delete_forever, color: Colors.red),
+                  title: Text('Delete All Pages', style: TextStyle(color: Colors.red)),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+            ],
           ),
           Consumer<SlideManager>(
             builder: (context, slideManager, child) {
@@ -824,11 +855,13 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     );
   }
 
+  // This method was added accidentally as a duplicate and can be removed
+
   void confirmDeleteSlide(BuildContext context) {
     final slideManager = Provider.of<SlideManager>(context, listen: false);
     if (slideManager.slides.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You must have at least one slide.")),
+        const SnackBar(content: Text("You must have at least one page.")),
       );
       return;
     }
@@ -836,8 +869,8 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Slide"),
-        content: const Text("Are you sure you want to delete this slide?"),
+        title: const Text("Delete Page"),
+        content: const Text("Are you sure you want to delete this page?"),
         actions: [
           TextButton(
             child: const Text("Cancel"),
@@ -848,6 +881,40 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
             onPressed: () {
               slideManager.removeSlide(slideManager.currentSlideIndex);
               Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Show confirmation dialog before deleting all pages
+  void confirmDeleteAllPages(BuildContext context) {
+    final slideManager = Provider.of<SlideManager>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete All Pages"),
+        content: const Text("Are you sure you want to delete all pages? This cannot be undone."),
+        actions: [
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text("Delete All"),
+            onPressed: () {
+              slideManager.deleteAllSlides();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("All pages have been deleted"),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
+                ),
+              );
             },
           ),
         ],
