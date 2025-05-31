@@ -32,7 +32,7 @@ class SlideNavigation extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 4.0),
             child: Text(
-              'Approaching slide limit (${totalSlides}/${SlideManager.maxSlides})',
+              'Approaching page limit (${totalSlides}/${SlideManager.maxSlides})',
               style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
             ),
           ),
@@ -41,7 +41,7 @@ class SlideNavigation extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 4.0),
             child: Text(
-              'Maximum slides reached (${SlideManager.maxSlides})',
+              'Maximum pages reached (${SlideManager.maxSlides})',
               style: const TextStyle(fontSize: 12, color: Colors.red),
             ),
           ),
@@ -52,15 +52,15 @@ class SlideNavigation extends StatelessWidget {
               icon: const Icon(Icons.arrow_back),
               onPressed: onPrevious,
             ),
-            Text('Slide ${currentIndex + 1} of $totalSlides'),
+            Text('Page ${currentIndex + 1} of $totalSlides'),
             IconButton(
               icon: const Icon(Icons.arrow_forward),
               onPressed: onNext,
             ),
             Tooltip(
               message: canAddMoreSlides 
-                ? 'Add a new slide' 
-                : 'Maximum slides reached (${SlideManager.maxSlides})',
+                ? 'Add a new page' 
+                : 'Maximum pages reached (${SlideManager.maxSlides})',
               child: IconButton(
                 icon: const Icon(Icons.add),
                 onPressed: canAddMoreSlides ? onAdd : null, // Disable if at limit

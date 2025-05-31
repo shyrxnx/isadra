@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../functionality/slide_manager.dart';
 
-class SlideThumbnail extends StatelessWidget {
+class SlideThumbnail extends StatelessWidget {  // Represents a page thumbnail
   final StorySlide slide;
   final bool isSelected;
   final VoidCallback onTap;
@@ -98,7 +98,7 @@ class SlideThumbnail extends StatelessWidget {
   }
 }
 
-class SlideThumbnailRow extends StatelessWidget {
+class SlideThumbnailRow extends StatelessWidget {  // Row of page thumbnails
   final SlideManager slideManager;
   final Function(int) onSlideSelected;
 
@@ -120,7 +120,7 @@ class SlideThumbnailRow extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(left: 8.0, bottom: 4.0),
             child: Text(
-              'Slides:',
+              'Pages:',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.teal),
             ),
           ),

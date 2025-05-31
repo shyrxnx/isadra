@@ -593,7 +593,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                 ),
               ),
             ),
-            // Thumbnail row for slide preview and quick navigation
+            // Thumbnail row for page preview and quick navigation
             SlideThumbnailRow(
               slideManager: slideManager,
               onSlideSelected: (index) {
@@ -612,7 +612,7 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                   if (slideManager.isCurrentSlideEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Please add content to the current slide before adding a new one'),
+                        content: Text('Please add content to the current page before adding a new one'),
                         backgroundColor: Colors.orange,
                         duration: Duration(seconds: 2),
                       ),
