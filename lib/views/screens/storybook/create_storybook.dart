@@ -702,30 +702,430 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
 
   Widget _buildRemovableAnimationWidget(AnimationOverlayData animationData, int index) {
     final slideManager = Provider.of<SlideManager>(context, listen: false);
-    return Stack(
-      children: [
-        AnimationOverlay(
-          data: animationData,
-          onPositionChanged: (x, y, scale) {
-            slideManager.updateAnimationPosition(index, x, y, scale);
-          },
-        ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: GestureDetector(
-            onTap: () => slideManager.removeCurrentAnimation(index),
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
+    return GestureDetector(
+      onLongPress: () {
+        _showAnimationOptionsMenu(context, slideManager, index);
+      },
+      child: Stack(
+        children: [
+          AnimationOverlay(
+            data: animationData,
+            onPositionChanged: (x, y, scale) {
+              slideManager.updateAnimationPosition(index, x, y, scale);
+            },
+          ),
+          // Modern control button in top-right
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Material(
+              elevation: 2,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  _showAnimationOptionsMenu(context, slideManager, index);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.blueAccent, Colors.tealAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.more_vert, color: Colors.white, size: 16),
+                ),
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 12),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  void _showAnimationOptionsMenu(BuildContext context, SlideManager slideManager, int index) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final animations = slideManager.currentSlide.animations;
+            return DraggableScrollableSheet(
+              initialChildSize: 0.6,
+              minChildSize: 0.3,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, scrollController) {
+                return SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.auto_awesome, color: Colors.teal),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Animation Layer Magic',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(thickness: 1, color: Colors.grey[300]),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${animations.length} picture${animations.length == 1 ? '' : 's'} to play with!',
+                                style: TextStyle(
+                                  color: Colors.indigo[600],
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            TextButton.icon(
+                              icon: const Icon(Icons.help_outline, size: 18, color: Colors.orange),
+                              label: const Text('Help', style: TextStyle(color: Colors.orange)),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Row(
+                                      children: const [
+                                        Icon(Icons.star, color: Colors.amber),
+                                        SizedBox(width: 8),
+                                        Text('Picture Magic Help', style: TextStyle(color: Colors.indigo)),
+                                      ],
+                                    ),
+                                    content: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            'Think of your pictures like a stack of toys:',
+                                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            children: const [
+                                              Icon(Icons.arrow_upward, color: Colors.blue, size: 18),
+                                              SizedBox(width: 8),
+                                              Expanded(child: Text('Pictures at the TOP show in FRONT', style: TextStyle(fontSize: 15))),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: const [
+                                              Icon(Icons.arrow_downward, color: Colors.purple, size: 18),
+                                              SizedBox(width: 8),
+                                              Expanded(child: Text('Pictures at the BOTTOM show in BACK', style: TextStyle(fontSize: 15))),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: const [
+                                                Text('You can:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                                SizedBox(height: 8),
+                                                Text('1. 👆 Drag pictures up or down', style: TextStyle(fontSize: 15)),
+                                                Text('2. 🔼 Push pictures up with blue button', style: TextStyle(fontSize: 15)),
+                                                Text('3. 🔽 Push pictures down with purple button', style: TextStyle(fontSize: 15)),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton.icon(
+                                        icon: const Icon(Icons.thumb_up, color: Colors.green),
+                                        label: const Text('I got it!', style: TextStyle(color: Colors.green)),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ReorderableListView.builder(
+                          scrollController: scrollController,
+                          onReorder: (oldIndex, newIndex) {
+                            // Fix for ReorderableListView's weird newIndex behavior
+                            if (oldIndex < newIndex) {
+                              newIndex -= 1;
+                            }
+                            slideManager.moveAnimationToPosition(oldIndex, newIndex);
+                            setState(() {}); // Refresh the state
+                          },
+                          itemCount: animations.length,
+                          itemBuilder: (context, i) {
+                            final animation = animations[i];
+                            final isSelected = i == index;
+                            
+                            return Card(
+                              key: ValueKey(animation.id),
+                              elevation: isSelected ? 4 : 1,
+                              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: isSelected 
+                                  ? const BorderSide(color: Colors.teal, width: 2)
+                                  : BorderSide.none,
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                leading: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        animation.file,
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 50,
+                                      width: 50,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: isSelected ? Colors.teal : Colors.grey[300]!,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                title: Flexible(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          'Picture ${i + 1}',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            color: isSelected ? Colors.teal : null,
+                                          ),
+                                        ),
+                                      ),
+                                      if (isSelected)
+                                        const Padding(
+                                          padding: EdgeInsets.only(left: 8.0),
+                                          child: Icon(Icons.check_circle, color: Colors.teal, size: 16),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                subtitle: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          i == animations.length - 1 
+                                            ? 'Top 🎯'
+                                            : i == 0 
+                                              ? 'Bottom 🔍' 
+                                              : '#${i} ✨',
+                                          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: i < animations.length - 1 
+                                        ? const Icon(Icons.flight_takeoff, size: 22)
+                                        : const Icon(Icons.check_circle, size: 20),
+                                      tooltip: i < animations.length - 1 ? 'Move picture up' : 'Already on top',
+                                      onPressed: i < animations.length - 1 ? () {
+                                        slideManager.moveAnimationUp(i);
+                                        setState(() {});
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: const [
+                                                Icon(Icons.flight_takeoff, color: Colors.white),
+                                                SizedBox(width: 8),
+                                                Text('Picture moved up! ✨')
+                                              ],
+                                            ),
+                                            backgroundColor: Colors.blue,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration: const Duration(seconds: 1),
+                                          ),
+                                        );
+                                      } : null,
+                                      color: i < animations.length - 1 ? Colors.blue : Colors.grey,
+                                    ),
+                                    IconButton(
+                                      icon: i > 0
+                                        ? const Icon(Icons.flight_land, size: 22)
+                                        : const Icon(Icons.check_circle, size: 20),
+                                      tooltip: i > 0 ? 'Move picture down' : 'Already at bottom',
+                                      onPressed: i > 0 ? () {
+                                        slideManager.moveAnimationDown(i);
+                                        setState(() {});
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: const [
+                                                Icon(Icons.flight_land, color: Colors.white),
+                                                SizedBox(width: 8),
+                                                Text('Picture moved down! ✨')
+                                              ],
+                                            ),
+                                            backgroundColor: Colors.purple,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration: const Duration(seconds: 1),
+                                          ),
+                                        );
+                                      } : null,
+                                      color: i > 0 ? Colors.purple : Colors.grey,
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, size: 22),
+                                      tooltip: 'Take away picture',
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Row(
+                                              children: const [
+                                                Icon(Icons.help_outline, color: Colors.orange),
+                                                SizedBox(width: 8),
+                                                Text('Take Away Picture?', style: TextStyle(color: Colors.indigo)),
+                                              ],
+                                            ),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Image.asset(
+                                                  'assets/images/icons/question.png',
+                                                  height: 60,
+                                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                                    Icons.question_mark,
+                                                    size: 60,
+                                                    color: Colors.orange,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                const Text('Do you want to make this picture go away?'),
+                                              ],
+                                            ),
+                                            actions: [
+                                              TextButton.icon(
+                                                icon: const Icon(Icons.close, color: Colors.grey),
+                                                label: const Text('No, keep it!', style: TextStyle(color: Colors.grey)),
+                                                onPressed: () => Navigator.pop(context),
+                                              ),
+                                              TextButton.icon(
+                                                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                                icon: const Icon(Icons.check_circle),
+                                                label: const Text('Yes, take it away'),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                  slideManager.removeCurrentAnimation(i);
+                                                  setState(() {});
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      color: Colors.red,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.close),
+                              label: const Text('Close'),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.grey[700],
+                                side: BorderSide(color: Colors.grey[300]!),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+        );
+      },
     );
   }
 

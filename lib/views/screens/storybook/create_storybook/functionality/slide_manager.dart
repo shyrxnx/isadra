@@ -257,6 +257,63 @@ class SlideManager extends ChangeNotifier {
     }
   }
 
+  // Moves an animation to the front (top of the stack)
+  void moveAnimationToFront(int index) {
+    if (index < 0 || index >= _slides[_currentSlideIndex].animations.length) return;
+    
+    final animation = _slides[_currentSlideIndex].animations.removeAt(index);
+    _slides[_currentSlideIndex].animations.add(animation);
+    _hasChanges = true;
+    notifyListeners();
+  }
+
+  // Moves an animation to the back (bottom of the stack)
+  void moveAnimationToBack(int index) {
+    if (index < 0 || index >= _slides[_currentSlideIndex].animations.length) return;
+    
+    final animation = _slides[_currentSlideIndex].animations.removeAt(index);
+    _slides[_currentSlideIndex].animations.insert(0, animation);
+    _hasChanges = true;
+    notifyListeners();
+  }
+  
+  // Moves an animation up one position in the z-order stack
+  void moveAnimationUp(int index) {
+    if (index < 0 || index >= _slides[_currentSlideIndex].animations.length - 1) return;
+    
+    // Swap with the animation above it (higher index = higher z-order)
+    final temp = _slides[_currentSlideIndex].animations[index + 1];
+    _slides[_currentSlideIndex].animations[index + 1] = _slides[_currentSlideIndex].animations[index];
+    _slides[_currentSlideIndex].animations[index] = temp;
+    _hasChanges = true;
+    notifyListeners();
+  }
+
+  // Moves an animation down one position in the z-order stack
+  void moveAnimationDown(int index) {
+    if (index <= 0 || index >= _slides[_currentSlideIndex].animations.length) return;
+    
+    // Swap with the animation below it (lower index = lower z-order)
+    final temp = _slides[_currentSlideIndex].animations[index - 1];
+    _slides[_currentSlideIndex].animations[index - 1] = _slides[_currentSlideIndex].animations[index];
+    _slides[_currentSlideIndex].animations[index] = temp;
+    _hasChanges = true;
+    notifyListeners();
+  }
+
+  // Move an animation to a specific position in the stack
+  void moveAnimationToPosition(int fromIndex, int toIndex) {
+    if (fromIndex < 0 || fromIndex >= _slides[_currentSlideIndex].animations.length ||
+        toIndex < 0 || toIndex >= _slides[_currentSlideIndex].animations.length) {
+      return;
+    }
+    
+    final animation = _slides[_currentSlideIndex].animations.removeAt(fromIndex);
+    _slides[_currentSlideIndex].animations.insert(toIndex, animation);
+    _hasChanges = true;
+    notifyListeners();
+  }
+
   void deleteCurrentSlide() {
     if (_slides.length <= 1) {
       // Don't allow deleting the last slide, just clear it
