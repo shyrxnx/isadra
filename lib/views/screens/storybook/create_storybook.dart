@@ -548,9 +548,20 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
             onSelected: (value) {
               if (value == 'delete_all') {
                 confirmDeleteAllPages(context);
+              } else if (value == 'remove_all_animations') {
+                confirmRemoveAllAnimations(context);
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'remove_all_animations',
+                child: ListTile(
+                  leading: Icon(Icons.animation, color: Colors.orange),
+                  title: Text('Remove All Animations', style: TextStyle(color: Colors.orange)),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'delete_all',
                 child: ListTile(
@@ -912,6 +923,50 @@ class _CreateStorybookContentState extends State<_CreateStorybookContent> {
                 const SnackBar(
                   content: Text("All pages have been deleted"),
                   backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Show confirmation dialog before removing all animations from current slide
+  void confirmRemoveAllAnimations(BuildContext context) {
+    final slideManager = Provider.of<SlideManager>(context, listen: false);
+    
+    if (slideManager.currentSlide.animations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("This slide has no animations"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Remove All Animations"),
+        content: const Text("Are you sure you want to remove all animations from this slide? This cannot be undone."),
+        actions: [
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            child: const Text("Remove All"),
+            onPressed: () {
+              slideManager.removeAllAnimationsFromCurrentSlide();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("All animations have been removed from this slide"),
+                  backgroundColor: Colors.orange,
                   duration: Duration(seconds: 2),
                 ),
               );

@@ -248,6 +248,15 @@ class SlideManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Removes all animations from the current slide
+  void removeAllAnimationsFromCurrentSlide() {
+    if (_slides[_currentSlideIndex].animations.isNotEmpty) {
+      _slides[_currentSlideIndex].animations.clear();
+      _hasChanges = true;
+      notifyListeners();
+    }
+  }
+
   void deleteCurrentSlide() {
     if (_slides.length <= 1) {
       // Don't allow deleting the last slide, just clear it
